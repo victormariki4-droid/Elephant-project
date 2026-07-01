@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "HEC Tracker",
+    "slug": "hec-tracker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "scheme": "hec-tracker",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hec.tracker",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "HEC Tracker needs your location to tag alert reports with GPS coordinates.",
+        "NSMicrophoneUsageDescription": "HEC Tracker needs microphone access for voice-based incident reports."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.hec.tracker",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-location",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow HEC Tracker to access your microphone for voice reports."
+        }
+      ],
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}

@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base Resets ── */
+@layer base {
+  * {
+    @apply box-border;
+  }
+  
+  body {
+    @apply bg-slate-50 text-slate-800 font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+}
+
+/* ── Component Utilities ── */
+@layer components {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20 rounded-2xl shadow-lg shadow-black/5;
+  }
+
+  .kpi-card {
+    @apply bg-white rounded-xl border border-slate-200/80 shadow-sm 
+           hover:shadow-md hover:border-slate-300/80 
+           transition-all duration-300 ease-out p-5;
+  }
+
+  .kpi-card-alert {
+    @apply kpi-card ring-2 ring-red-200 border-red-200;
+  }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+           text-sidebar-text hover:text-white hover:bg-sidebar-hover
+           transition-all duration-200 ease-out;
+  }
+
+  .sidebar-link-active {
+    @apply sidebar-link text-white bg-sidebar-hover border-l-[3px] border-sidebar-accent;
+  }
+
+  .alert-card {
+    @apply bg-white rounded-lg border-l-4 p-4 shadow-sm 
+           hover:shadow-md transition-all duration-200;
+  }
+
+  .alert-card-emergency {
+    @apply alert-card border-red-500 bg-red-50/30;
+  }
+
+  .alert-card-sighting {
+    @apply alert-card border-amber-400 bg-amber-50/30;
+  }
+
+  .alert-card-crop {
+    @apply alert-card border-orange-500 bg-orange-50/30;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-success {
+    @apply badge bg-emerald-100 text-emerald-700;
+  }
+
+  .badge-warning {
+    @apply badge bg-amber-100 text-amber-700;
+  }
+
+  .badge-danger {
+    @apply badge bg-red-100 text-red-700;
+  }
+
+  .chart-container {
+    @apply bg-white rounded-xl border border-slate-200/80 shadow-sm p-6;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 
+           bg-emerald-600 text-white text-sm font-semibold rounded-xl
+           hover:bg-emerald-700 active:bg-emerald-800
+           shadow-sm hover:shadow-md
+           transition-all duration-200 ease-out;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 
+           bg-white text-slate-700 text-sm font-semibold rounded-xl
+           border border-slate-200 hover:bg-slate-50 active:bg-slate-100
+           shadow-sm hover:shadow-md
+           transition-all duration-200 ease-out;
+  }
+}
+
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ── Recharts Customizations ── */
+.recharts-cartesian-axis-tick-value {
+  fill: #64748b;
+  font-size: 12px;
+}
+
+.recharts-tooltip-wrapper {
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.07));
+}
