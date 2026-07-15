@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -6,124 +6,213 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
+  Image,
+  ScrollView,
 } from 'react-native';
+import { router } from 'expo-router';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { auth, db } from '../../lib/firebase';
 
 export default function LoginScreen() {
-  const [phone, setPhone] = useState('');
-  const [showOtp, setShowOtp] = useState(false);
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const otpRefs = useRef<(TextInput | null)[]>([]);
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSendOtp = () => {
-    if (phone.length >= 9) {
-      setShowOtp(true);
+  const handleLogin = async () => {
+    if (identifier.length < 3 || password.length < 6) {
+      Alert.alert('Error', 'Please enter valid credentials. Password must be at least 6 characters.');
+      return;
     }
-  };
 
-  const handleOtpChange = (text: string, index: number) => {
-    const newOtp = [...otp];
-    newOtp[index] = text;
-    setOtp(newOtp);
-    // Auto-advance to next input
-    if (text && index < 5) {
-      otpRefs.current[index + 1]?.focus();
+    setLoading(true);
+    try {
+      let formattedId = identifier.replace(/\s+/g, '');
+      if (/^\d{9}$/.test(formattedId)) {
+        formattedId = `+255${formattedId}`;
+      } else if (/^0\d{9}$/.test(formattedId)) {
+        formattedId = `+255${formattedId.substring(1)}`;
+      }
+
+      const emailMapping = `${formattedId}@hec.local`;
+      const userCredential = await signInWithEmailAndPassword(auth, emailMapping, password);
+      const uid = userCredential.user.uid;
+
+      const userDocRef = doc(db, 'users', uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        Alert.alert('Profile Not Found', 'Your account exists but profile data is missing. Contact admin.');
+        setLoading(false);
+        return;
+      }
+
+      const userData = userDocSnap.data();
+      const userRole = userData.role || 'villager';
+
+      await AsyncStorage.setItem('userPhone', userData.phone || formattedId);
+      await AsyncStorage.setItem('userRole', userRole);
+      await AsyncStorage.setItem('userId', uid);
+      await AsyncStorage.setItem('userName', userData.name || 'User');
+
+      if (userRole === 'ranger') {
+        router.replace('/(ranger)/missions');
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      Alert.alert('Login Failed', error.message || 'An unknown error occurred.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-dark"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      className="flex-1"
+      style={{ backgroundColor: '#f0f4f8' }}
     >
-      <View className="flex-1 justify-center px-6">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 40 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Brand */}
         <View className="items-center mb-10">
-          <Text className="text-5xl mb-3">🐘</Text>
-          <Text className="text-3xl font-bold text-white tracking-tight">
-            HEC Tracker
+          <Image
+            source={require('../../assets/tef-logo.png')}
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              marginBottom: 16,
+            }}
+            resizeMode="contain"
+          />
+          <Text className="text-3xl font-bold text-slate-900 tracking-tight">
+            UHEC Alert Center
           </Text>
-          <Text className="text-sm text-slate-400 mt-1">
+          <Text className="text-sm text-slate-500 mt-1">
             Human-Elephant Conflict Monitor
           </Text>
         </View>
 
-        {!showOtp ? (
-          /* Phone Number Input */
+        {/* Inputs */}
+        <View
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.9)',
+            borderRadius: 24,
+            padding: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.06,
+            shadowRadius: 16,
+            elevation: 6,
+            borderWidth: 1,
+            borderColor: 'rgba(0,0,0,0.05)',
+          }}
+        >
           <View>
-            <Text className="text-sm font-semibold text-slate-300 mb-2">
-              Phone Number / Namba ya Simu
+            <Text className="text-sm font-semibold text-slate-700 mb-2">
+              Phone Number or Username
             </Text>
-            <View className="flex-row items-center bg-dark-card rounded-2xl border border-dark-border px-4">
-              <Text className="text-white text-base font-semibold mr-2">
-                +255
-              </Text>
-              <View className="w-px h-6 bg-dark-border mr-3" />
+            <View
+              className="flex-row items-center rounded-2xl px-4 py-1"
+              style={{
+                backgroundColor: '#f8fafc',
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.08)',
+              }}
+            >
               <TextInput
-                className="flex-1 text-white text-lg py-4"
-                placeholder="712 345 678"
-                placeholderTextColor="#64748b"
-                keyboardType="phone-pad"
-                value={phone}
-                onChangeText={setPhone}
-                maxLength={10}
+                className="flex-1 text-slate-900 text-lg py-3"
+                placeholder="e.g. 712 345 678"
+                placeholderTextColor="#94a3b8"
+                keyboardType="default"
+                autoCapitalize="none"
+                value={identifier}
+                onChangeText={setIdentifier}
+                editable={!loading}
               />
             </View>
-
-            <TouchableOpacity
-              className="mt-6 bg-primary-600 rounded-2xl py-4 items-center active:opacity-80"
-              onPress={handleSendOtp}
-            >
-              <Text className="text-white text-base font-bold">
-                Send Verification Code
-              </Text>
-            </TouchableOpacity>
           </View>
-        ) : (
-          /* OTP Input */
-          <View>
-            <Text className="text-sm font-semibold text-slate-300 mb-2 text-center">
-              Enter the 6-digit code sent to +255{phone}
+
+          <View className="mt-4">
+            <Text className="text-sm font-semibold text-slate-700 mb-2">
+              Password
             </Text>
-            <View className="flex-row justify-between mt-4 px-4">
-              {otp.map((digit, i) => (
-                <TextInput
-                  key={i}
-                  ref={(ref) => { otpRefs.current[i] = ref; }}
-                  className="w-12 h-14 bg-dark-card border-2 border-dark-border rounded-xl text-white text-2xl text-center font-bold"
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  value={digit}
-                  onChangeText={(text) => handleOtpChange(text, i)}
-                  style={digit ? { borderColor: '#16a34a' } : {}}
-                />
-              ))}
+            <View
+              className="flex-row items-center rounded-2xl px-4 py-1"
+              style={{
+                backgroundColor: '#f8fafc',
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.08)',
+              }}
+            >
+              <TextInput
+                className="flex-1 text-slate-900 text-lg py-3"
+                placeholder="••••••••"
+                placeholderTextColor="#94a3b8"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                editable={!loading}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                className="ml-2 p-1"
+              >
+                <Text className="text-slate-400 text-lg">
+                  {showPassword ? '🙈' : '👁️'}
+                </Text>
+              </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              className="mt-8 bg-primary-600 rounded-2xl py-4 items-center active:opacity-80"
-              onPress={() => {/* TODO: Verify OTP via Firebase */}}
-            >
-              <Text className="text-white text-base font-bold">
-                Verify & Continue
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="mt-4 items-center"
-              onPress={() => setShowOtp(false)}
-            >
-              <Text className="text-slate-400 text-sm">
-                ← Change phone number
-              </Text>
-            </TouchableOpacity>
           </View>
-        )}
+
+          <TouchableOpacity
+            className={`mt-6 rounded-2xl py-4 items-center flex-row justify-center ${loading ? 'opacity-70' : ''}`}
+            style={{
+              backgroundColor: '#16a34a',
+              shadowColor: '#16a34a',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 6,
+            }}
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            {loading ? (
+              <>
+                <ActivityIndicator color="#ffffff" style={{ marginRight: 8 }} />
+                <Text className="text-white text-base font-bold">Authenticating...</Text>
+              </>
+            ) : (
+              <Text className="text-white text-base font-bold">
+                Login / Ingia
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
 
         {/* Footer */}
-        <Text className="text-slate-600 text-xs text-center mt-12">
-          Protected by Tanzania Wildlife Authority
-        </Text>
-      </View>
+        <View className="items-center mt-10">
+          <Text className="text-slate-400 text-xs text-center">
+            Powered by
+          </Text>
+          <Text className="text-slate-600 text-xs text-center font-semibold mt-0.5">
+            Tanzanian Elephant Foundation (TEF)
+          </Text>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

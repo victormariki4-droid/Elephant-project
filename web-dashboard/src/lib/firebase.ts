@@ -7,8 +7,8 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyBwvB6wvkMrox9p1dv_WhAJeAoNDN-vrT0',
+export const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyBwvB6WvkMrox9p1dv_WhAJeAoNDN-vrT0',
   authDomain: 'elephant-392b0.firebaseapp.com',
   projectId: 'elephant-392b0',
   storageBucket: 'elephant-392b0.firebasestorage.app',

@@ -2,7 +2,9 @@
 // Sidebar Navigation — Dark themed vertical nav
 // ──────────────────────────────────────────────────────────────
 
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
 import {
   LayoutDashboard,
   AlertTriangle,
@@ -10,7 +12,7 @@ import {
   Shield,
   Settings,
   LogOut,
-  Leaf,
+  Users,
 } from 'lucide-react';
 
 const navItems = [
@@ -18,22 +20,32 @@ const navItems = [
   { to: '/alerts',    icon: AlertTriangle,   label: 'Active Alerts' },
   { to: '/history',   icon: FolderArchive,   label: 'Historical Logs' },
   { to: '/rangers',   icon: Shield,          label: 'Ranger Deployment' },
+  { to: '/users',     icon: Users,           label: 'User Management' },
   { to: '/settings',  icon: Settings,        label: 'Settings' },
 ];
 
 export default function Sidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <aside className="fixed inset-y-0 left-0 z-30 w-64 bg-sidebar flex flex-col border-r border-slate-800">
       {/* ── Brand ── */}
       <div className="flex items-center gap-3 px-5 py-6 border-b border-slate-800/60">
-        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10">
-          <Leaf className="w-5 h-5 text-emerald-400" />
-        </div>
+        <img src="/tef-logo.png" alt="TEF" className="w-10 h-10 rounded-full object-contain" />
         <div>
           <h1 className="text-base font-bold text-white tracking-tight font-display">
-            HEC Tracker
+            UHEC
           </h1>
-          <p className="text-[11px] text-sidebar-text font-medium">Elephant Conflict Monitor</p>
+          <p className="text-[11px] text-sidebar-text font-medium">Alert Center</p>
         </div>
       </div>
 
@@ -68,12 +80,14 @@ export default function Sidebar() {
             <p className="text-[11px] text-sidebar-text truncate">System Administrator</p>
           </div>
           <button
+            onClick={handleLogout}
             className="p-2 rounded-lg text-sidebar-text hover:text-red-400 hover:bg-red-500/10 transition-colors"
             title="Logout"
           >
             <LogOut className="w-4 h-4" />
           </button>
         </div>
+        <p className="text-[9px] text-slate-600 mt-3 text-center">Powered by TEF</p>
       </div>
     </aside>
   );

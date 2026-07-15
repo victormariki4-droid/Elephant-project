@@ -29,10 +29,12 @@ module.exports = {
           500: '#f59e0b',
           600: '#d97706',
         },
-        dark: {
-          DEFAULT: '#0f172a',
-          card: '#1e293b',
-          border: '#334155',
+        glass: {
+          DEFAULT: 'rgba(255,255,255,0.85)',
+          bg: '#f0f4f8',
+          card: 'rgba(255,255,255,0.9)',
+          border: 'rgba(0,0,0,0.08)',
+          muted: 'rgba(255,255,255,0.6)',
         },
       },
       fontFamily: {

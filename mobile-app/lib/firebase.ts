@@ -10,10 +10,11 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBwvB6wvkMrox9p1dv_WhAJeAoNDN-vrT0',
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBwvB6WvkMrox9p1dv_WhAJeAoNDN-vrT0',
   authDomain: 'elephant-392b0.firebaseapp.com',
   projectId: 'elephant-392b0',
   storageBucket: 'elephant-392b0.firebasestorage.app',
@@ -32,5 +33,8 @@ export const db = initializeFirestore(app, {
   }),
 });
 
-export const auth = getAuth(app);
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+});
 export default app;
+

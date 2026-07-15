@@ -5,7 +5,7 @@ function TabIcon({ emoji, label, focused }: { emoji: string; label: string; focu
   return (
     <View className={`items-center py-1 ${focused ? 'opacity-100' : 'opacity-50'}`}>
       <Text className="text-lg">{emoji}</Text>
-      <Text className={`text-[10px] mt-0.5 ${focused ? 'text-primary-500 font-bold' : 'text-slate-400'}`}>
+      <Text className={`text-[10px] mt-0.5 ${focused ? 'text-primary-600 font-bold' : 'text-slate-500'}`}>
         {label}
       </Text>
     </View>
@@ -18,10 +18,17 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0f172a',
-          borderTopColor: '#1e293b',
+          backgroundColor: 'rgba(255,255,255,0.92)',
+          borderTopColor: 'rgba(0,0,0,0.06)',
+          borderTopWidth: 0.5,
           height: 70,
           paddingBottom: 10,
+          // Glassmorphism shadow
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.04,
+          shadowRadius: 12,
+          elevation: 8,
         },
         tabBarShowLabel: false,
       }}

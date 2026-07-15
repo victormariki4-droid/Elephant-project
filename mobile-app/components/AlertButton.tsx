@@ -5,8 +5,7 @@ interface AlertButtonProps {
   emoji: string;
   title: string;
   swahili: string;
-  bgColor: string;
-  isEmergency?: boolean;
+  accentColor: string;
   onPress: () => void;
 }
 
@@ -14,34 +13,36 @@ export default function AlertButton({
   emoji,
   title,
   swahili,
-  bgColor,
-  isEmergency = false,
+  accentColor,
   onPress,
 }: AlertButtonProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.75}
+      activeOpacity={0.7}
       className="w-full"
       style={{
-        backgroundColor: bgColor,
+        backgroundColor: 'rgba(255,255,255,0.92)',
         borderRadius: 20,
-        paddingVertical: isEmergency ? 28 : 24,
+        paddingVertical: 24,
         paddingHorizontal: 20,
-        // Subtle shadow
-        shadowColor: bgColor,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.35,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.05)',
+        borderLeftWidth: 4,
+        borderLeftColor: accentColor,
+        shadowColor: accentColor,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
         shadowRadius: 12,
-        elevation: 8,
+        elevation: 4,
       }}
     >
       <View className="items-center">
         <Text className="text-4xl mb-2">{emoji}</Text>
-        <Text className="text-lg font-bold text-white text-center">
+        <Text className="text-lg font-bold text-slate-900 text-center">
           {title}
         </Text>
-        <Text className="text-xs text-white/70 text-center mt-0.5">
+        <Text className="text-xs text-slate-400 text-center mt-0.5">
           {swahili}
         </Text>
       </View>

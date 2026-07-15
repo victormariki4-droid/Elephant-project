@@ -12,30 +12,28 @@ export default function VoiceRecorder() {
         activeOpacity={0.8}
         className="items-center"
       >
-        {/* Outer ring */}
         <View
-          className={`w-20 h-20 rounded-full items-center justify-center ${
-            isRecording
-              ? 'bg-danger-600'
-              : 'bg-dark-card border-2 border-dark-border'
-          }`}
-          style={
-            isRecording
-              ? {
-                  shadowColor: '#ef4444',
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.6,
-                  shadowRadius: 20,
-                  elevation: 10,
-                }
-              : {}
-          }
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: isRecording ? '#dc2626' : 'rgba(255,255,255,0.9)',
+            borderWidth: isRecording ? 0 : 1.5,
+            borderColor: 'rgba(0,0,0,0.08)',
+            shadowColor: isRecording ? '#ef4444' : '#000',
+            shadowOffset: { width: 0, height: isRecording ? 0 : 2 },
+            shadowOpacity: isRecording ? 0.5 : 0.06,
+            shadowRadius: isRecording ? 16 : 8,
+            elevation: isRecording ? 8 : 3,
+          }}
         >
-          <Text className="text-3xl">{isRecording ? '🔴' : '🎙️'}</Text>
+          <Text className="text-2xl">{isRecording ? '🔴' : '🎙️'}</Text>
         </View>
       </TouchableOpacity>
 
-      <Text className="text-xs text-slate-500 mt-3 text-center">
+      <Text className="text-xs text-slate-400 mt-2 text-center">
         {isRecording
           ? 'Recording... Release to stop / Inarekodiwa...'
           : 'Hold to record / Shikilia kurekodi'}

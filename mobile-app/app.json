@@ -1,36 +1,46 @@
 {
   "expo": {
-    "name": "HEC Tracker",
+    "name": "UHEC Alert Center",
     "slug": "hec-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "hec-tracker",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0f172a"
+      "backgroundColor": "#f0f4f8"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hec.tracker",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "HEC Tracker needs your location to tag alert reports with GPS coordinates.",
-        "NSMicrophoneUsageDescription": "HEC Tracker needs microphone access for voice-based incident reports."
+        "NSLocationWhenInUseUsageDescription": "UHEC Alert Center needs your location to tag alert reports with GPS coordinates.",
+        "NSMicrophoneUsageDescription": "UHEC Alert Center needs microphone access for voice-based incident reports.",
+        "NSCameraUsageDescription": "UHEC Alert Center needs camera access for photo evidence in reports.",
+        "NSPhotoLibraryUsageDescription": "UHEC Alert Center needs photo library access for uploading evidence images."
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0f172a"
+        "backgroundColor": "#f0f4f8"
       },
       "package": "com.hec.tracker",
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES"
       ]
     },
     "web": {
@@ -44,11 +54,34 @@
       [
         "expo-av",
         {
-          "microphonePermission": "Allow HEC Tracker to access your microphone for voice reports."
+          "microphonePermission": "Allow UHEC Alert Center to access your microphone for voice reports."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow UHEC Alert Center to access your photos for evidence upload.",
+          "cameraPermission": "Allow UHEC Alert Center to use camera for photo evidence."
         }
       ],
       "expo-asset",
-      "expo-font"
-    ]
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.25"
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "3c32883e-bf5e-4634-8cc6-d06cdfbe26d3"
+      }
+    }
   }
 }

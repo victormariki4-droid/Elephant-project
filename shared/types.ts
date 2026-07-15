@@ -1,5 +1,6 @@
 // ──────────────────────────────────────────────────────────────
-// HEC Platform — Shared TypeScript Interfaces
+// UHEC Platform — Shared TypeScript Interfaces
+// Powered by Tanzanian Elephant Foundation (TEF)
 // ──────────────────────────────────────────────────────────────
 
 /** GPS coordinates for an alert location */
@@ -9,7 +10,7 @@ export interface Coordinates {
 }
 
 /** Alert severity / type classification */
-export type AlertType = 'sighting' | 'crop_damage' | 'immediate_danger';
+export type AlertType = 'sighting' | 'property_damage' | 'human_injury' | 'human_death';
 
 /** Current lifecycle status of an alert */
 export type AlertStatus = 'active' | 'responding' | 'resolved';
@@ -25,6 +26,18 @@ export type MitigationMethod =
   | 'vehicle_patrol'
   | 'other';
 
+/** Damage severity scale */
+export type DamageSeverity = 'severe' | 'moderate' | 'minor';
+
+/** Injury severity scale */
+export type InjurySeverity = 'minor' | 'moderate' | 'severe';
+
+/** Death circumstances */
+export type DeathCircumstance = 'trampling' | 'farming_encounter' | 'night_encounter' | 'other';
+
+/** Property damage sub-types */
+export type DamageType = 'houses' | 'crops' | 'livestock';
+
 /** Core alert document stored in Firestore `alerts` collection */
 export interface Alert {
   id: string;
@@ -39,9 +52,30 @@ export interface Alert {
   village?: string;
   audioReportUrl?: string;  // Voice recording storage URL
   resolvedAt?: Date;
+
+  // ── Sighting-specific ──
+  elephantCount?: '1-5' | '5-10' | '10+';
+
+  // ── Property Damage-specific ──
+  damageTypes?: DamageType[];
+  severity?: DamageSeverity;
+
+  // ── Human Injury-specific ──
+  injurySeverity?: InjurySeverity;
+  victimCount?: '1' | '2-3' | '4+';
+  medicalHelpNeeded?: boolean;
+
+  // ── Human Death-specific ──
+  deathCount?: '1' | '2-3' | '4+';
+  circumstances?: DeathCircumstance;
+  authoritiesNotified?: boolean;
+
+  // ── Common optional fields ──
+  imageUrl?: string;
+  notes?: string;
 }
 
-/** User roles in the HEC system */
+/** User roles in the UHEC system */
 export type UserRole = 'villager' | 'ranger' | 'admin';
 
 /** User profile stored in Firestore `users` collection */
@@ -63,9 +97,9 @@ export interface AnalyticsMonth {
   year: number;
   totalIncidents: number;
   sightings: number;
-  cropDamageReports: number;
-  immediateThreats: number;
-  cropDamageClaims: number;
+  propertyDamageReports: number;
+  humanInjuryReports: number;
+  humanDeathReports: number;
   avgResponseTimeMinutes: number;
   mitigationBreakdown: Record<MitigationMethod, number>;
   resolvedCount: number;
@@ -77,8 +111,9 @@ export interface IncidentDataPoint {
   date: string;             // ISO date string (YYYY-MM-DD)
   incidents: number;
   sightings: number;
-  cropDamage: number;
-  emergencies: number;
+  propertyDamage: number;
+  humanInjury: number;
+  humanDeath: number;
 }
 
 /** Shape of data for the mitigation success chart */
