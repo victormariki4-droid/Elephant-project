@@ -67,3 +67,12 @@ EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
 - **SMS Fallback** — Automated Beem Africa SMS alerts for offline ranger notification
 - **Ranger Mode** — Accept & resolve missions with mitigation tracking
 - **Analytics** — Monthly trend charts, mitigation success rates, response time KPIs
+
+## Version History
+
+### v1.1.2 (Current Release)
+- **Segmented Priority Selector:** Replaced standard immediate danger toggle with side-by-side priority buttons (`🟢 Normal / Kawaida` and `🚨 Danger / Dharura`) with contextual bilingual details.
+- **Operations Center Side-Panel:** Web dashboard details drawer showing GPS maps, victim metadata (names, ages, genders), crop types, and direct Firestore operational state changes (`active` → `responding` → `resolved`).
+- **Historical Log Export:** Searchable archive for resolved events with CSV export capabilities.
+- **Smart SMS Trigger Rules:** Automated SMS triggers in Cloud Functions whenever `isImmediateDanger` is checked, or when the alert type is `human_injury`, `human_death`, `crop_damage`, or `livestock_killing`.
+- **Firebase JS SDK RN Compatibility Fix:** Replaced browser-specific `persistentMultipleTabManager` in mobile Firestore init with native-compatible `getFirestore(app)` to prevent white-screen crashes.
