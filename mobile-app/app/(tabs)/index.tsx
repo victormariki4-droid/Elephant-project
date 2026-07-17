@@ -6,6 +6,8 @@ import { alertTypes } from '@/constants/theme';
 const alertCards = [
   { type: 'sighting', ...alertTypes.sighting },
   { type: 'property_damage', ...alertTypes.property_damage },
+  { type: 'crop_damage', ...alertTypes.crop_damage },
+  { type: 'livestock_killing', ...alertTypes.livestock_killing },
   { type: 'human_injury', ...alertTypes.human_injury },
   { type: 'human_death', ...alertTypes.human_death },
 ] as const;
@@ -27,7 +29,7 @@ export default function AlertCenter() {
           />
           <View>
             <Text className="text-2xl font-bold text-slate-900 tracking-tight">
-              UHEC Alert Center
+              HEC Alert Center
             </Text>
             <Text className="text-[11px] text-slate-400 font-medium -mt-0.5">
               Powered by TEF

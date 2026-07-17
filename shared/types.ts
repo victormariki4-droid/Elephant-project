@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────────────────────
-// UHEC Platform — Shared TypeScript Interfaces
+// HEC Platform — Shared TypeScript Interfaces
 // Powered by Tanzanian Elephant Foundation (TEF)
 // ──────────────────────────────────────────────────────────────
 
@@ -10,7 +10,7 @@ export interface Coordinates {
 }
 
 /** Alert severity / type classification */
-export type AlertType = 'sighting' | 'property_damage' | 'human_injury' | 'human_death';
+export type AlertType = 'sighting' | 'property_damage' | 'crop_damage' | 'livestock_killing' | 'human_injury' | 'human_death';
 
 /** Current lifecycle status of an alert */
 export type AlertStatus = 'active' | 'responding' | 'resolved';
@@ -36,7 +36,13 @@ export type InjurySeverity = 'minor' | 'moderate' | 'severe';
 export type DeathCircumstance = 'trampling' | 'farming_encounter' | 'night_encounter' | 'other';
 
 /** Property damage sub-types */
-export type DamageType = 'houses' | 'crops' | 'livestock';
+export type DamageType = 'houses' | 'food_store' | 'water_pipes' | 'other';
+
+/** Crop damage types */
+export type CropDamageType = 'maize' | 'rice' | 'banana' | 'cassava' | 'vegetables' | 'other';
+
+/** Livestock killing types */
+export type LivestockType = 'cattle' | 'goats' | 'sheep' | 'poultry' | 'other';
 
 /** Core alert document stored in Firestore `alerts` collection */
 export interface Alert {
@@ -60,6 +66,16 @@ export interface Alert {
   damageTypes?: DamageType[];
   severity?: DamageSeverity;
 
+  // ── Crop Damage-specific ──
+  cropTypes?: CropDamageType[];
+  cropSeverity?: DamageSeverity;
+  estimatedAreaAcres?: string;
+
+  // ── Livestock Killing-specific ──
+  livestockTypes?: LivestockType[];
+  livestockCount?: '1-2' | '3-5' | '5+';
+  livestockSeverity?: DamageSeverity;
+
   // ── Human Injury-specific ──
   injurySeverity?: InjurySeverity;
   victimCount?: '1' | '2-3' | '4+';
@@ -75,7 +91,7 @@ export interface Alert {
   notes?: string;
 }
 
-/** User roles in the UHEC system */
+/** User roles in the HEC system */
 export type UserRole = 'villager' | 'ranger' | 'admin';
 
 /** User profile stored in Firestore `users` collection */
@@ -98,6 +114,8 @@ export interface AnalyticsMonth {
   totalIncidents: number;
   sightings: number;
   propertyDamageReports: number;
+  cropDamageReports: number;
+  livestockKillingReports: number;
   humanInjuryReports: number;
   humanDeathReports: number;
   avgResponseTimeMinutes: number;
@@ -112,6 +130,8 @@ export interface IncidentDataPoint {
   incidents: number;
   sightings: number;
   propertyDamage: number;
+  cropDamage: number;
+  livestockKilling: number;
   humanInjury: number;
   humanDeath: number;
 }

@@ -1,10 +1,7 @@
-import { Radio, MapPin, Clock } from 'lucide-react';
+import { Radio, MapPin, Clock, AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
-import { useAlerts, type AlertDoc } from '../../hooks/useAlerts';
+import { useAlerts, typeLabels, typeColors, statusColors, type AlertDoc } from '../../hooks/useAlerts';
 import { formatDistanceToNow } from 'date-fns';
-
-const typeLabels: Record<AlertDoc['type'], string> = { sighting: 'Sighting', crop_damage: 'Crop Damage', immediate_danger: 'Emergency' };
-const statusColors: Record<AlertDoc['status'], string> = { active: 'bg-red-500', responding: 'bg-amber-500', resolved: 'bg-emerald-500' };
 
 export default function LiveAlertStream() {
   const { alerts, loading } = useAlerts('active');
@@ -32,26 +29,86 @@ export default function LiveAlertStream() {
             <p className="text-sm font-medium">All clear. No active alerts.</p>
           </div>
         ) : (
-          alerts.map((alert, i) => (
-            <div key={alert.id} className={clsx('animate-slide-in', alert.type === 'immediate_danger' && 'alert-card-emergency', alert.type === 'sighting' && 'alert-card-sighting', alert.type === 'crop_damage' && 'alert-card-crop')} style={{ animationDelay: `${i * 80}ms` }}>
-              <div className="flex items-start justify-between mb-2">
-                <span className={clsx('badge text-[10px]', alert.type === 'immediate_danger' && 'bg-red-100 text-red-700', alert.type === 'sighting' && 'bg-amber-100 text-amber-700', alert.type === 'crop_damage' && 'bg-orange-100 text-orange-700')}>{typeLabels[alert.type]}</span>
-                <div className="flex items-center gap-1">
-                  <div className={clsx('w-1.5 h-1.5 rounded-full', statusColors[alert.status])} />
-                  <span className="text-[10px] text-slate-500 capitalize">{alert.status}</span>
+          alerts.map((alert, i) => {
+            const colors = typeColors[alert.type] || typeColors.sighting;
+            return (
+              <div
+                key={alert.id}
+                className={clsx(
+                  'p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer',
+                  alert.isImmediateDanger
+                    ? 'bg-red-50 border-red-200 shadow-sm shadow-red-100'
+                    : 'bg-white border-slate-200/80 shadow-sm'
+                )}
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className={clsx('badge text-[10px]', colors.bg, colors.text)}>
+                      {typeLabels[alert.type] || alert.type}
+                    </span>
+                    {alert.isImmediateDanger && (
+                      <span className="badge text-[10px] bg-red-100 text-red-700 flex items-center gap-1">
+                        <AlertTriangle className="w-2.5 h-2.5" />
+                        DANGER
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className={clsx('w-1.5 h-1.5 rounded-full', statusColors[alert.status])} />
+                    <span className="text-[10px] text-slate-500 capitalize">{alert.status}</span>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-700 leading-relaxed mb-2">{alert.description}</p>
+                {/* Type-specific summary */}
+                <AlertSummary alert={alert} />
+                <div className="flex items-center gap-3 text-[11px] text-slate-500 mt-2">
+                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{alert.village || 'Unknown'}</span>
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />
+                    {alert.timestamp ? formatDistanceToNow(alert.timestamp, { addSuffix: true }) : 'Just now'}
+                  </span>
+                  {alert.elephantCount && (
+                    <span className="flex items-center gap-1">🐘 {alert.elephantCount}</span>
+                  )}
                 </div>
               </div>
-              <p className="text-sm text-slate-700 leading-relaxed mb-2">{alert.description}</p>
-              <div className="flex items-center gap-3 text-[11px] text-slate-500">
-                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{alert.village || 'Unknown'}</span>
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" />
-                  {alert.timestamp ? formatDistanceToNow(alert.timestamp, { addSuffix: true }) : 'Just now'}
-                </span>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
+  );
+}
+
+function AlertSummary({ alert }: { alert: AlertDoc }) {
+  const items: string[] = [];
+
+  if (alert.type === 'property_damage' && alert.damageTypes?.length) {
+    items.push(`Damage: ${alert.damageTypes.join(', ')}`);
+    if (alert.severity) items.push(`Severity: ${alert.severity}`);
+  }
+  if (alert.type === 'crop_damage' && alert.cropTypes?.length) {
+    items.push(`Crops: ${alert.cropTypes.join(', ')}`);
+    if (alert.estimatedAreaAcres) items.push(`${alert.estimatedAreaAcres} acres`);
+  }
+  if (alert.type === 'livestock_killing' && alert.livestockTypes?.length) {
+    items.push(`Animals: ${alert.livestockTypes.join(', ')}`);
+    if (alert.livestockCount) items.push(`Count: ${alert.livestockCount}`);
+  }
+  if (alert.type === 'human_injury' && alert.victims?.length) {
+    items.push(`${alert.victims.length} victim${alert.victims.length > 1 ? 's' : ''}`);
+    if (alert.injurySeverity) items.push(`Severity: ${alert.injurySeverity}`);
+  }
+  if (alert.type === 'human_death' && alert.deceased?.length) {
+    items.push(`${alert.deceased.length} deceased`);
+    if (alert.circumstances) items.push(alert.circumstances.replace(/_/g, ' '));
+  }
+
+  if (items.length === 0) return null;
+
+  return (
+    <p className="text-xs text-slate-500 bg-slate-50 rounded-lg px-2.5 py-1.5 mb-1">
+      {items.join(' · ')}
+    </p>
   );
 }

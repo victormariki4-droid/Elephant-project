@@ -4,18 +4,21 @@ import IncidentChart from '../components/dashboard/IncidentChart';
 import MitigationChart from '../components/dashboard/MitigationChart';
 import LiveAlertStream from '../components/dashboard/LiveAlertStream';
 import MapPlaceholder from '../components/dashboard/MapPlaceholder';
+import { useAlertKPIs } from '../hooks/useAlerts';
 
 export default function DashboardPage() {
+  const { kpis } = useAlertKPIs();
+
   return (
     <div className="space-y-6">
-      <Header activeAlertCount={3} />
+      <Header activeAlertCount={kpis.activeAlerts} />
 
       {/* KPI Metrics */}
       <KPIRow
-        activeAlerts={3}
-        totalIncidentsThisMonth={47}
-        cropDamagePending={8}
-        avgResponseTime="23 min"
+        activeAlerts={kpis.activeAlerts}
+        totalIncidentsThisMonth={kpis.totalIncidentsThisMonth}
+        immediateDangerCount={kpis.immediateDangerCount}
+        resolvedAlerts={kpis.resolvedCount}
       />
 
       {/* Charts + Live Feed */}

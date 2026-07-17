@@ -43,7 +43,7 @@ export default function Sidebar() {
         <img src="/tef-logo.png" alt="TEF" className="w-10 h-10 rounded-full object-contain" />
         <div>
           <h1 className="text-base font-bold text-white tracking-tight font-display">
-            UHEC
+            HEC
           </h1>
           <p className="text-[11px] text-sidebar-text font-medium">Alert Center</p>
         </div>

@@ -1,4 +1,4 @@
-# Dependencies
+hi # Dependencies
 node_modules/
 
 # Expo
@@ -22,3 +22,4 @@ android/
 # OS
 .DS_Store
 *.log
+node_modules

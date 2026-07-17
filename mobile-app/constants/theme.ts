@@ -10,7 +10,7 @@ export const colors = {
 
 export const alertTypes = {
   sighting: {
-    label: 'Sighting',
+    label: 'Sighting / Normal Movement',
     swahili: 'Tembo Kaonekana',
     emoji: '🐘',
     color: '#f59e0b',
@@ -24,6 +24,22 @@ export const alertTypes = {
     color: '#c2410c',
     bgGradient: ['#fff7ed', '#fed7aa'],
     accentColor: '#ea580c',
+  },
+  crop_damage: {
+    label: 'Crop Damage',
+    swahili: 'Uharibifu wa Mazao',
+    emoji: '🌾',
+    color: '#16a34a',
+    bgGradient: ['#dcfce7', '#bbf7d0'],
+    accentColor: '#15803d',
+  },
+  livestock_killing: {
+    label: 'Livestock Depredation',
+    swahili: 'Uwindaji wa Mifugo',
+    emoji: '🐄',
+    color: '#92400e',
+    bgGradient: ['#fef3c7', '#fde68a'],
+    accentColor: '#78350f',
   },
   human_injury: {
     label: 'Human Injury',

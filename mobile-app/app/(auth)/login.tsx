@@ -96,7 +96,7 @@ export default function LoginScreen() {
             resizeMode="contain"
           />
           <Text className="text-3xl font-bold text-slate-900 tracking-tight">
-            UHEC Alert Center
+            HEC Alert Center
           </Text>
           <Text className="text-sm text-slate-500 mt-1">
             Human-Elephant Conflict Monitor

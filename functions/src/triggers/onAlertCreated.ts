@@ -10,12 +10,9 @@ import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { sendBeemSMS } from '../services/beemSMS';
 import { logger } from '../utils/logger';
 
-// Secrets managed via Firebase / Google Cloud Secret Manager (Skipped for now)
+// Secrets managed via Firebase / Google Cloud Secret Manager
 const beemApiKey = process.env.BEEM_API_KEY || 'mock_key';
 const beemSecretKey = process.env.BEEM_SECRET_KEY || 'mock_secret';
-
-// Alert types that warrant SMS notification
-const HIGH_SEVERITY_TYPES = ['immediate_danger', 'crop_damage'];
 
 export const onAlertCreated = onDocumentCreated(
   {
@@ -33,15 +30,21 @@ export const onAlertCreated = onDocumentCreated(
     const alertType = alertData.type as string;
     const village = alertData.village as string | undefined;
     const description = alertData.description as string || '';
+    const isImmediateDanger = alertData.isImmediateDanger as boolean | undefined;
 
     logger.info(`New alert created: ${alertId}`, {
       type: alertType,
       village: village ?? 'unknown',
+      isImmediateDanger: !!isImmediateDanger,
     });
 
-    // Only send SMS for high-severity alerts
-    if (!HIGH_SEVERITY_TYPES.includes(alertType)) {
-      logger.info(`Alert type "${alertType}" is not high-severity — skipping SMS.`);
+    // Trigger SMS for immediate danger, injury, death, crop damage, or livestock depredation
+    const warrantsSMS =
+      isImmediateDanger ||
+      ['human_death', 'human_injury', 'crop_damage', 'livestock_killing'].includes(alertType);
+
+    if (!warrantsSMS) {
+      logger.info(`Alert type "${alertType}" (Danger: ${isImmediateDanger}) does not warrant SMS — skipping.`);
       return;
     }
 
@@ -94,17 +97,24 @@ export const onAlertCreated = onDocumentCreated(
 
       // Construct alert message (bilingual: English + Swahili)
       const typeLabels: Record<string, string> = {
-        immediate_danger: 'HATARI / DANGER',
-        crop_damage: 'UHARIBIFU WA MAZAO / CROP DAMAGE',
+        sighting: 'SIGHTING / KUZIONA',
+        property_damage: 'PROPERTY DAMAGE / UHARIBIFU WA MALI',
+        crop_damage: 'CROP DAMAGE / UHARIBIFU WA MAZAO',
+        livestock_killing: 'LIVESTOCK DEPREDATION / UWINDAJI WA MIFUGO',
+        human_injury: 'HUMAN INJURY / MAJERAHA YA BINADAMU',
+        human_death: 'HUMAN DEATH / VIFO VYA BINADAMU',
       };
 
+      const prefix = isImmediateDanger ? '🚨 DHARURA / CRITICAL ALERT 🚨' : '⚠️ TEMBO ALERT';
+      const label = typeLabels[alertType] || alertType.toUpperCase();
       const locationText = village ? `at ${village}` : 'in your area';
+
       const message = [
-        `⚠️ TEMBO ALERT [${typeLabels[alertType] || alertType.toUpperCase()}]:`,
+        `${prefix} [${label}]:`,
         `Elephant activity reported ${locationText}.`,
         description ? `Details: ${description.substring(0, 100)}` : '',
-        'Please stay indoors and await rangers.',
-        'Tafadhali kaa ndani na subiri askari wa wanyamapori.',
+        'Please stay safe and await rangers.',
+        'Tafadhali kaa salama na subiri askari.',
       ].filter(Boolean).join(' ');
 
       // Send via Beem Africa

@@ -54,7 +54,7 @@ export default function LoginPage() {
         <div className="text-center">
           <img src="/tef-logo.png" alt="TEF Logo" className="mx-auto w-20 h-20 rounded-full object-contain" />
           <h2 className="mt-6 text-3xl font-extrabold text-slate-900 font-display">
-            UHEC Alert Center
+            HEC Alert Center
           </h2>
           <p className="mt-2 text-sm text-slate-500">
             Sign in to access the control center

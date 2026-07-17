@@ -28,8 +28,9 @@ const SIGHTING_COUNTS = [
 
 const DAMAGE_TYPES = [
   { id: 'houses', label: 'Houses / Nyumba', emoji: '🏠' },
-  { id: 'crops', label: 'Crops / Mazao', emoji: '🌾' },
-  { id: 'livestock', label: 'Livestock / Mifugo', emoji: '🐄' },
+  { id: 'food_store', label: 'Food Store / Ghala', emoji: '🏭' },
+  { id: 'water_pipes', label: 'Water Pipes / Mihundo binu', emoji: '🚰' },
+  { id: 'other', label: 'Other Properties / Mali Nyingine', emoji: '📝' },
 ];
 
 const SEVERITY_LEVELS = [
@@ -57,6 +58,29 @@ const DEATH_CIRCUMSTANCES = [
   { id: 'other', label: 'Other / Nyingine', emoji: '📝' },
 ];
 
+const CROP_TYPES = [
+  { id: 'maize', label: 'Maize / Mahindi', emoji: '🌽' },
+  { id: 'rice', label: 'Rice / Mpunga', emoji: '🌾' },
+  { id: 'banana', label: 'Banana / Ndizi', emoji: '🍌' },
+  { id: 'cassava', label: 'Cassava / Muhogo', emoji: '🥔' },
+  { id: 'vegetables', label: 'Vegetables / Mboga', emoji: '🥬' },
+  { id: 'other', label: 'Other / Nyingine', emoji: '📝' },
+];
+
+const LIVESTOCK_TYPES = [
+  { id: 'cattle', label: 'Cattle / Ng\'ombe', emoji: '🐄' },
+  { id: 'goats', label: 'Goats / Mbuzi', emoji: '🐐' },
+  { id: 'sheep', label: 'Sheep / Kondoo', emoji: '🐑' },
+  { id: 'poultry', label: 'Poultry / Kuku', emoji: '🐔' },
+  { id: 'other', label: 'Other / Nyingine', emoji: '📝' },
+];
+
+const LIVESTOCK_COUNTS = [
+  { id: '1-2', label: '1 – 2' },
+  { id: '3-5', label: '3 – 5' },
+  { id: '5+', label: '5+' },
+];
+
 export default function ReportScreen() {
   const { type } = useLocalSearchParams<{ type: string }>();
   const config = alertTypes[type as keyof typeof alertTypes];
@@ -65,6 +89,9 @@ export default function ReportScreen() {
   const [notes, setNotes] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isImmediateDanger, setIsImmediateDanger] = useState(
+    type === 'human_injury' || type === 'human_death'
+  );
 
   // Sighting
   const [elephantCount, setElephantCount] = useState<string | null>(null);
@@ -72,19 +99,56 @@ export default function ReportScreen() {
   // Property damage
   const [damageTypes, setDamageTypes] = useState<string[]>([]);
   const [severity, setSeverity] = useState<string | null>(null);
+  const [otherPropertyText, setOtherPropertyText] = useState('');
+  const [otherProperties, setOtherProperties] = useState<string[]>([]);
 
   // Human injury
   const [injurySeverity, setInjurySeverity] = useState<string | null>(null);
-  const [victimCount, setVictimCount] = useState<string | null>(null);
   const [medicalHelp, setMedicalHelp] = useState<boolean | null>(null);
+  const [victims, setVictims] = useState<{ name: string; gender: string; age: string }[]>([]);
+  const [victimName, setVictimName] = useState('');
+  const [victimGender, setVictimGender] = useState<string | null>(null);
+  const [victimAge, setVictimAge] = useState('');
 
   // Human death
   const [deathCount, setDeathCount] = useState<string | null>(null);
   const [circumstances, setCircumstances] = useState<string | null>(null);
   const [authoritiesNotified, setAuthoritiesNotified] = useState<boolean | null>(null);
+  const [otherCircumstanceText, setOtherCircumstanceText] = useState('');
+  const [otherCircumstances, setOtherCircumstances] = useState<string[]>([]);
+  const [deceasedList, setDeceasedList] = useState<{ name: string; gender: string; age: string }[]>([]);
+  const [deceasedName, setDeceasedName] = useState('');
+  const [deceasedGender, setDeceasedGender] = useState<string | null>(null);
+  const [deceasedAge, setDeceasedAge] = useState('');
+
+  // Crop damage
+  const [cropTypes, setCropTypes] = useState<string[]>([]);
+  const [cropSeverity, setCropSeverity] = useState<string | null>(null);
+  const [estimatedArea, setEstimatedArea] = useState('');
+  const [otherCropText, setOtherCropText] = useState('');
+  const [otherCrops, setOtherCrops] = useState<string[]>([]);
+
+  // Livestock killing
+  const [livestockTypes, setLivestockTypes] = useState<string[]>([]);
+  const [livestockCount, setLivestockCount] = useState<string | null>(null);
+  const [livestockSeverity, setLivestockSeverity] = useState<string | null>(null);
+  const [otherLivestockText, setOtherLivestockText] = useState('');
+  const [otherLivestock, setOtherLivestock] = useState<string[]>([]);
 
   const toggleDamageType = (id: string) => {
     setDamageTypes((prev) =>
+      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
+    );
+  };
+
+  const toggleCropType = (id: string) => {
+    setCropTypes((prev) =>
+      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
+    );
+  };
+
+  const toggleLivestockType = (id: string) => {
+    setLivestockTypes((prev) =>
       prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
     );
   };
@@ -115,22 +179,44 @@ export default function ReportScreen() {
         village: 'Unknown',
         notes: notes || null,
         imageUrl: image || null,
+        elephantCount: elephantCount || null,
+        isImmediateDanger,
       };
 
       // Add type-specific fields
-      if (type === 'sighting') {
-        alertData.elephantCount = elephantCount;
-      } else if (type === 'property_damage') {
+      if (type === 'property_damage') {
         alertData.damageTypes = damageTypes;
         alertData.severity = severity;
+        if (otherProperties.length > 0) {
+          alertData.otherProperties = otherProperties;
+        }
       } else if (type === 'human_injury') {
         alertData.injurySeverity = injurySeverity;
-        alertData.victimCount = victimCount;
+        alertData.victimCount = String(victims.length);
+        alertData.victims = victims;
         alertData.medicalHelpNeeded = medicalHelp;
       } else if (type === 'human_death') {
-        alertData.deathCount = deathCount;
+        alertData.deathCount = String(deceasedList.length || deathCount);
+        alertData.deceased = deceasedList;
         alertData.circumstances = circumstances;
         alertData.authoritiesNotified = authoritiesNotified;
+        if (otherCircumstances.length > 0) {
+          alertData.otherCircumstances = otherCircumstances;
+        }
+      } else if (type === 'crop_damage') {
+        alertData.cropTypes = cropTypes;
+        alertData.cropSeverity = cropSeverity;
+        alertData.estimatedAreaAcres = estimatedArea || null;
+        if (otherCrops.length > 0) {
+          alertData.otherCrops = otherCrops;
+        }
+      } else if (type === 'livestock_killing') {
+        alertData.livestockTypes = livestockTypes;
+        alertData.livestockCount = livestockCount;
+        alertData.livestockSeverity = livestockSeverity;
+        if (otherLivestock.length > 0) {
+          alertData.otherLivestock = otherLivestock;
+        }
       }
 
       await addDoc(collection(db, 'alerts'), alertData);
@@ -196,27 +282,20 @@ export default function ReportScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
-        {/* ── SIGHTING FORM ── */}
+
+        {/* ── SIGHTING FORM (no extra fields needed) ── */}
         {type === 'sighting' && (
-          <SectionCard title="🐘 How many elephants? / Tembo wangapi?">
-            <View style={{ gap: 8 }}>
-              {SIGHTING_COUNTS.map((item) => (
-                <CheckOption
-                  key={item.id}
-                  label={`${item.emoji}  ${item.label}`}
-                  selected={elephantCount === item.id}
-                  onPress={() => setElephantCount(item.id)}
-                  color={config.color}
-                />
-              ))}
-            </View>
+          <SectionCard title="📝 Additional sighting details">
+            <Text style={{ color: '#64748b', fontSize: 13 }}>
+              Use the notes, photo, and voice sections below for more details.
+            </Text>
           </SectionCard>
         )}
 
         {/* ── PROPERTY DAMAGE FORM ── */}
         {type === 'property_damage' && (
           <>
-            <SectionCard title="🏚️ Type of Damage / Aina ya Uharibifu">
+            <SectionCard title="🏠 Type of Damage / Aina ya Uharibifu">
               <View style={{ gap: 8 }}>
                 {DAMAGE_TYPES.map((item) => (
                   <CheckOption
@@ -228,6 +307,83 @@ export default function ReportScreen() {
                     multi
                   />
                 ))}
+
+                {/* Other Properties input */}
+                {damageTypes.includes('other') && (
+                  <View style={{ marginTop: 8 }}>
+                    {/* List of added items */}
+                    {otherProperties.map((prop, index) => (
+                      <View
+                        key={index}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: `${config.color}10`,
+                          borderRadius: 10,
+                          paddingVertical: 10,
+                          paddingHorizontal: 14,
+                          marginBottom: 6,
+                          borderWidth: 1,
+                          borderColor: `${config.color}30`,
+                        }}
+                      >
+                        <Text style={{ flex: 1, color: '#1e293b', fontSize: 14 }}>{prop}</Text>
+                        <TouchableOpacity
+                          onPress={() => setOtherProperties((prev) => prev.filter((_, i) => i !== index))}
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: 12,
+                            backgroundColor: '#ef444420',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Text style={{ color: '#ef4444', fontSize: 14, fontWeight: '700' }}>×</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+
+                    {/* Input + Add button */}
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TextInput
+                        className="text-slate-900 text-sm"
+                        placeholder="Type property name... / Andika jina la mali..."
+                        placeholderTextColor="#94a3b8"
+                        value={otherPropertyText}
+                        onChangeText={setOtherPropertyText}
+                        style={{
+                          flex: 1,
+                          backgroundColor: '#f8fafc',
+                          borderRadius: 12,
+                          paddingHorizontal: 14,
+                          paddingVertical: 12,
+                          borderWidth: 1,
+                          borderColor: 'rgba(0,0,0,0.06)',
+                        }}
+                      />
+                      <TouchableOpacity
+                        onPress={() => {
+                          const trimmed = otherPropertyText.trim();
+                          if (trimmed) {
+                            setOtherProperties((prev) => [...prev, trimmed]);
+                            setOtherPropertyText('');
+                          }
+                        }}
+                        activeOpacity={0.7}
+                        style={{
+                          backgroundColor: config.color,
+                          borderRadius: 12,
+                          paddingHorizontal: 16,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 20 }}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
               </View>
             </SectionCard>
 
@@ -247,9 +403,379 @@ export default function ReportScreen() {
           </>
         )}
 
+        {/* ── CROP DAMAGE FORM ── */}
+        {type === 'crop_damage' && (
+          <>
+            <SectionCard title="🌾 Crop Type / Aina ya Mazao">
+              <View style={{ gap: 8 }}>
+                {CROP_TYPES.map((item) => (
+                  <CheckOption
+                    key={item.id}
+                    label={`${item.emoji}  ${item.label}`}
+                    selected={cropTypes.includes(item.id)}
+                    onPress={() => toggleCropType(item.id)}
+                    color={config.color}
+                    multi
+                  />
+                ))}
+
+                {/* Other Crops input */}
+                {cropTypes.includes('other') && (
+                  <View style={{ marginTop: 8 }}>
+                    {otherCrops.map((crop, index) => (
+                      <View
+                        key={index}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: `${config.color}10`,
+                          borderRadius: 10,
+                          paddingVertical: 10,
+                          paddingHorizontal: 14,
+                          marginBottom: 6,
+                          borderWidth: 1,
+                          borderColor: `${config.color}30`,
+                        }}
+                      >
+                        <Text style={{ flex: 1, color: '#1e293b', fontSize: 14 }}>{crop}</Text>
+                        <TouchableOpacity
+                          onPress={() => setOtherCrops((prev) => prev.filter((_, i) => i !== index))}
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: 12,
+                            backgroundColor: '#ef444420',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Text style={{ color: '#ef4444', fontSize: 14, fontWeight: '700' }}>×</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TextInput
+                        className="text-slate-900 text-sm"
+                        placeholder="Type crop name... / Andika jina la zao..."
+                        placeholderTextColor="#94a3b8"
+                        value={otherCropText}
+                        onChangeText={setOtherCropText}
+                        style={{
+                          flex: 1,
+                          backgroundColor: '#f8fafc',
+                          borderRadius: 12,
+                          paddingHorizontal: 14,
+                          paddingVertical: 12,
+                          borderWidth: 1,
+                          borderColor: 'rgba(0,0,0,0.06)',
+                        }}
+                      />
+                      <TouchableOpacity
+                        onPress={() => {
+                          const trimmed = otherCropText.trim();
+                          if (trimmed) {
+                            setOtherCrops((prev) => [...prev, trimmed]);
+                            setOtherCropText('');
+                          }
+                        }}
+                        activeOpacity={0.7}
+                        style={{
+                          backgroundColor: config.color,
+                          borderRadius: 12,
+                          paddingHorizontal: 16,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 20 }}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </SectionCard>
+
+            <SectionCard title="📊 Severity / Uzito wa Madhara">
+              <View style={{ gap: 8 }}>
+                {SEVERITY_LEVELS.map((item) => (
+                  <CheckOption
+                    key={item.id}
+                    label={`${item.label}  •  ${item.sublabel}`}
+                    selected={cropSeverity === item.id}
+                    onPress={() => setCropSeverity(item.id)}
+                    color={item.color}
+                  />
+                ))}
+              </View>
+            </SectionCard>
+
+            <SectionCard title="📏 Estimated Farm Size / Ukubwa wa Shamba (Acres)">
+              <TextInput
+                className="text-slate-900 text-base"
+                placeholder="e.g. 2.5 acres..."
+                placeholderTextColor="#94a3b8"
+                keyboardType="decimal-pad"
+                value={estimatedArea}
+                onChangeText={setEstimatedArea}
+                style={{
+                  backgroundColor: '#f8fafc',
+                  borderRadius: 14,
+                  padding: 14,
+                  borderWidth: 1,
+                  borderColor: 'rgba(0,0,0,0.06)',
+                }}
+              />
+            </SectionCard>
+          </>
+        )}
+
+        {/* ── LIVESTOCK KILLING FORM ── */}
+        {type === 'livestock_killing' && (
+          <>
+            <SectionCard title="🐄 Livestock Type / Aina ya Mifugo">
+              <View style={{ gap: 8 }}>
+                {LIVESTOCK_TYPES.map((item) => (
+                  <CheckOption
+                    key={item.id}
+                    label={`${item.emoji}  ${item.label}`}
+                    selected={livestockTypes.includes(item.id)}
+                    onPress={() => toggleLivestockType(item.id)}
+                    color={config.color}
+                    multi
+                  />
+                ))}
+
+                {/* Other Livestock input */}
+                {livestockTypes.includes('other') && (
+                  <View style={{ marginTop: 8 }}>
+                    {otherLivestock.map((item, index) => (
+                      <View
+                        key={index}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: `${config.color}10`,
+                          borderRadius: 10,
+                          paddingVertical: 10,
+                          paddingHorizontal: 14,
+                          marginBottom: 6,
+                          borderWidth: 1,
+                          borderColor: `${config.color}30`,
+                        }}
+                      >
+                        <Text style={{ flex: 1, color: '#1e293b', fontSize: 14 }}>{item}</Text>
+                        <TouchableOpacity
+                          onPress={() => setOtherLivestock((prev) => prev.filter((_, i) => i !== index))}
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: 12,
+                            backgroundColor: '#ef444420',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Text style={{ color: '#ef4444', fontSize: 14, fontWeight: '700' }}>×</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TextInput
+                        className="text-slate-900 text-sm"
+                        placeholder="Type livestock name... / Andika jina la mfugo..."
+                        placeholderTextColor="#94a3b8"
+                        value={otherLivestockText}
+                        onChangeText={setOtherLivestockText}
+                        style={{
+                          flex: 1,
+                          backgroundColor: '#f8fafc',
+                          borderRadius: 12,
+                          paddingHorizontal: 14,
+                          paddingVertical: 12,
+                          borderWidth: 1,
+                          borderColor: 'rgba(0,0,0,0.06)',
+                        }}
+                      />
+                      <TouchableOpacity
+                        onPress={() => {
+                          const trimmed = otherLivestockText.trim();
+                          if (trimmed) {
+                            setOtherLivestock((prev) => [...prev, trimmed]);
+                            setOtherLivestockText('');
+                          }
+                        }}
+                        activeOpacity={0.7}
+                        style={{
+                          backgroundColor: config.color,
+                          borderRadius: 12,
+                          paddingHorizontal: 16,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 20 }}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </SectionCard>
+
+            <SectionCard title="📊 Number of Depredation / Idadi ya Mifugo Walioathirika">
+              <View style={{ gap: 8 }}>
+                {LIVESTOCK_COUNTS.map((item) => (
+                  <CheckOption
+                    key={item.id}
+                    label={item.label}
+                    selected={livestockCount === item.id}
+                    onPress={() => setLivestockCount(item.id)}
+                    color={config.color}
+                  />
+                ))}
+              </View>
+            </SectionCard>
+
+            <SectionCard title="🚨 Severity / Uzito wa Madhara">
+              <View style={{ gap: 8 }}>
+                {SEVERITY_LEVELS.map((item) => (
+                  <CheckOption
+                    key={item.id}
+                    label={`${item.label}  •  ${item.sublabel}`}
+                    selected={livestockSeverity === item.id}
+                    onPress={() => setLivestockSeverity(item.id)}
+                    color={item.color}
+                  />
+                ))}
+              </View>
+            </SectionCard>
+          </>
+        )}
+
         {/* ── HUMAN INJURY FORM ── */}
         {type === 'human_injury' && (
           <>
+            <SectionCard title="👥 Victims / Waathirika">
+              {/* List of added victims */}
+              {victims.map((v, index) => (
+                <View
+                  key={index}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: `${config.color}10`,
+                    borderRadius: 10,
+                    paddingVertical: 10,
+                    paddingHorizontal: 14,
+                    marginBottom: 6,
+                    borderWidth: 1,
+                    borderColor: `${config.color}30`,
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: '#1e293b', fontSize: 14, fontWeight: '600' }}>{v.name}</Text>
+                    <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>
+                      {v.gender === 'male' ? '♂️ Male' : '♀️ Female'} • Age: {v.age}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setVictims((prev) => prev.filter((_, i) => i !== index))}
+                    style={{
+                      width: 24, height: 24, borderRadius: 12,
+                      backgroundColor: '#ef444420',
+                      alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ color: '#ef4444', fontSize: 14, fontWeight: '700' }}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+              {/* Victim input form */}
+              <View style={{ gap: 10, marginTop: victims.length > 0 ? 8 : 0 }}>
+                <TextInput
+                  placeholder="Name / Jina..."
+                  placeholderTextColor="#94a3b8"
+                  value={victimName}
+                  onChangeText={setVictimName}
+                  style={{
+                    backgroundColor: '#f8fafc', borderRadius: 12,
+                    paddingHorizontal: 14, paddingVertical: 12,
+                    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+                    color: '#1e293b', fontSize: 14,
+                  }}
+                />
+
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TouchableOpacity
+                    onPress={() => setVictimGender('male')}
+                    activeOpacity={0.7}
+                    style={{
+                      flex: 1, paddingVertical: 12, borderRadius: 12,
+                      alignItems: 'center',
+                      backgroundColor: victimGender === 'male' ? `${config.color}15` : '#f8fafc',
+                      borderWidth: 1.5,
+                      borderColor: victimGender === 'male' ? `${config.color}40` : 'rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <Text style={{ color: victimGender === 'male' ? config.color : '#94a3b8', fontWeight: '600', fontSize: 14 }}>♂️ Male / Mme</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setVictimGender('female')}
+                    activeOpacity={0.7}
+                    style={{
+                      flex: 1, paddingVertical: 12, borderRadius: 12,
+                      alignItems: 'center',
+                      backgroundColor: victimGender === 'female' ? `${config.color}15` : '#f8fafc',
+                      borderWidth: 1.5,
+                      borderColor: victimGender === 'female' ? `${config.color}40` : 'rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <Text style={{ color: victimGender === 'female' ? config.color : '#94a3b8', fontWeight: '600', fontSize: 14 }}>♀️ Female / Mke</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TextInput
+                  placeholder="Age / Umri..."
+                  placeholderTextColor="#94a3b8"
+                  keyboardType="number-pad"
+                  value={victimAge}
+                  onChangeText={setVictimAge}
+                  style={{
+                    backgroundColor: '#f8fafc', borderRadius: 12,
+                    paddingHorizontal: 14, paddingVertical: 12,
+                    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+                    color: '#1e293b', fontSize: 14,
+                  }}
+                />
+
+                <TouchableOpacity
+                  onPress={() => {
+                    if (victimName.trim() && victimGender && victimAge.trim()) {
+                      setVictims((prev) => [...prev, { name: victimName.trim(), gender: victimGender, age: victimAge.trim() }]);
+                      setVictimName('');
+                      setVictimGender(null);
+                      setVictimAge('');
+                    }
+                  }}
+                  activeOpacity={0.7}
+                  style={{
+                    backgroundColor: config.color, borderRadius: 12,
+                    paddingVertical: 14, alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>+ Add Victim / Ongeza Mwathirika</Text>
+                </TouchableOpacity>
+              </View>
+
+              {victims.length > 0 && (
+                <Text style={{ color: '#64748b', fontSize: 12, marginTop: 6, textAlign: 'center' }}>
+                  {victims.length} victim{victims.length > 1 ? 's' : ''} added
+                </Text>
+              )}
+            </SectionCard>
+
             <SectionCard title="🩹 Injury Severity / Kiwango cha Jeraha">
               <View style={{ gap: 8 }}>
                 {INJURY_SEVERITY.map((item) => (
@@ -258,20 +784,6 @@ export default function ReportScreen() {
                     label={`${item.emoji}  ${item.label}  •  ${item.sublabel}`}
                     selected={injurySeverity === item.id}
                     onPress={() => setInjurySeverity(item.id)}
-                    color={config.color}
-                  />
-                ))}
-              </View>
-            </SectionCard>
-
-            <SectionCard title="👥 Number of Victims / Idadi ya Waathirika">
-              <View style={{ gap: 8 }}>
-                {VICTIM_COUNTS.map((item) => (
-                  <CheckOption
-                    key={item.id}
-                    label={item.label}
-                    selected={victimCount === item.id}
-                    onPress={() => setVictimCount(item.id)}
                     color={config.color}
                   />
                 ))}
@@ -300,18 +812,124 @@ export default function ReportScreen() {
         {/* ── HUMAN DEATH FORM ── */}
         {type === 'human_death' && (
           <>
-            <SectionCard title="☠️ Number of Deaths / Idadi ya Vifo">
-              <View style={{ gap: 8 }}>
-                {VICTIM_COUNTS.map((item) => (
-                  <CheckOption
-                    key={item.id}
-                    label={item.label}
-                    selected={deathCount === item.id}
-                    onPress={() => setDeathCount(item.id)}
-                    color={config.color}
-                  />
-                ))}
+            <SectionCard title="☠️ Deceased / Waliofariki">
+              {/* List of added deceased */}
+              {deceasedList.map((d, index) => (
+                <View
+                  key={index}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: `${config.color}10`,
+                    borderRadius: 10,
+                    paddingVertical: 10,
+                    paddingHorizontal: 14,
+                    marginBottom: 6,
+                    borderWidth: 1,
+                    borderColor: `${config.color}30`,
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: '#1e293b', fontSize: 14, fontWeight: '600' }}>{d.name}</Text>
+                    <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>
+                      {d.gender === 'male' ? '♂️ Male' : '♀️ Female'} • Age: {d.age}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setDeceasedList((prev) => prev.filter((_, i) => i !== index))}
+                    style={{
+                      width: 24, height: 24, borderRadius: 12,
+                      backgroundColor: '#ef444420',
+                      alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ color: '#ef4444', fontSize: 14, fontWeight: '700' }}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+              {/* Deceased input form */}
+              <View style={{ gap: 10, marginTop: deceasedList.length > 0 ? 8 : 0 }}>
+                <TextInput
+                  placeholder="Name / Jina..."
+                  placeholderTextColor="#94a3b8"
+                  value={deceasedName}
+                  onChangeText={setDeceasedName}
+                  style={{
+                    backgroundColor: '#f8fafc', borderRadius: 12,
+                    paddingHorizontal: 14, paddingVertical: 12,
+                    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+                    color: '#1e293b', fontSize: 14,
+                  }}
+                />
+
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TouchableOpacity
+                    onPress={() => setDeceasedGender('male')}
+                    activeOpacity={0.7}
+                    style={{
+                      flex: 1, paddingVertical: 12, borderRadius: 12,
+                      alignItems: 'center',
+                      backgroundColor: deceasedGender === 'male' ? `${config.color}15` : '#f8fafc',
+                      borderWidth: 1.5,
+                      borderColor: deceasedGender === 'male' ? `${config.color}40` : 'rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <Text style={{ color: deceasedGender === 'male' ? config.color : '#94a3b8', fontWeight: '600', fontSize: 14 }}>♂️ Male / Mme</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setDeceasedGender('female')}
+                    activeOpacity={0.7}
+                    style={{
+                      flex: 1, paddingVertical: 12, borderRadius: 12,
+                      alignItems: 'center',
+                      backgroundColor: deceasedGender === 'female' ? `${config.color}15` : '#f8fafc',
+                      borderWidth: 1.5,
+                      borderColor: deceasedGender === 'female' ? `${config.color}40` : 'rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <Text style={{ color: deceasedGender === 'female' ? config.color : '#94a3b8', fontWeight: '600', fontSize: 14 }}>♀️ Female / Mke</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TextInput
+                  placeholder="Age / Umri..."
+                  placeholderTextColor="#94a3b8"
+                  keyboardType="number-pad"
+                  value={deceasedAge}
+                  onChangeText={setDeceasedAge}
+                  style={{
+                    backgroundColor: '#f8fafc', borderRadius: 12,
+                    paddingHorizontal: 14, paddingVertical: 12,
+                    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+                    color: '#1e293b', fontSize: 14,
+                  }}
+                />
+
+                <TouchableOpacity
+                  onPress={() => {
+                    if (deceasedName.trim() && deceasedGender && deceasedAge.trim()) {
+                      setDeceasedList((prev) => [...prev, { name: deceasedName.trim(), gender: deceasedGender, age: deceasedAge.trim() }]);
+                      setDeceasedName('');
+                      setDeceasedGender(null);
+                      setDeceasedAge('');
+                    }
+                  }}
+                  activeOpacity={0.7}
+                  style={{
+                    backgroundColor: config.color, borderRadius: 12,
+                    paddingVertical: 14, alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>+ Add Person / Ongeza Mtu</Text>
+                </TouchableOpacity>
               </View>
+
+              {deceasedList.length > 0 && (
+                <Text style={{ color: '#64748b', fontSize: 12, marginTop: 6, textAlign: 'center' }}>
+                  {deceasedList.length} person{deceasedList.length > 1 ? 's' : ''} added
+                </Text>
+              )}
             </SectionCard>
 
             <SectionCard title="📋 Circumstances / Hali Iliyotokea">
@@ -325,6 +943,72 @@ export default function ReportScreen() {
                     color={config.color}
                   />
                 ))}
+
+                {/* Other Circumstances input */}
+                {circumstances === 'other' && (
+                  <View style={{ marginTop: 8 }}>
+                    {otherCircumstances.map((item, index) => (
+                      <View
+                        key={index}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor: `${config.color}10`,
+                          borderRadius: 10,
+                          paddingVertical: 10,
+                          paddingHorizontal: 14,
+                          marginBottom: 6,
+                          borderWidth: 1,
+                          borderColor: `${config.color}30`,
+                        }}
+                      >
+                        <Text style={{ flex: 1, color: '#1e293b', fontSize: 14 }}>{item}</Text>
+                        <TouchableOpacity
+                          onPress={() => setOtherCircumstances((prev) => prev.filter((_, i) => i !== index))}
+                          style={{
+                            width: 24, height: 24, borderRadius: 12,
+                            backgroundColor: '#ef444420',
+                            alignItems: 'center', justifyContent: 'center',
+                          }}
+                        >
+                          <Text style={{ color: '#ef4444', fontSize: 14, fontWeight: '700' }}>×</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TextInput
+                        className="text-slate-900 text-sm"
+                        placeholder="Describe circumstance... / Eleza hali..."
+                        placeholderTextColor="#94a3b8"
+                        value={otherCircumstanceText}
+                        onChangeText={setOtherCircumstanceText}
+                        style={{
+                          flex: 1, backgroundColor: '#f8fafc', borderRadius: 12,
+                          paddingHorizontal: 14, paddingVertical: 12,
+                          borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+                        }}
+                      />
+                      <TouchableOpacity
+                        onPress={() => {
+                          const trimmed = otherCircumstanceText.trim();
+                          if (trimmed) {
+                            setOtherCircumstances((prev) => [...prev, trimmed]);
+                            setOtherCircumstanceText('');
+                          }
+                        }}
+                        activeOpacity={0.7}
+                        style={{
+                          backgroundColor: config.color, borderRadius: 12,
+                          paddingHorizontal: 16,
+                          alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 20 }}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
               </View>
             </SectionCard>
 
@@ -347,14 +1031,31 @@ export default function ReportScreen() {
           </>
         )}
 
-        {/* ── COMMON: Image Upload ── */}
-        <SectionCard title="📸 Photo Evidence / Picha ya Ushahidi">
-          <ImagePicker image={image} onImageSelected={(uri) => setImage(uri || null)} />
-        </SectionCard>
+        {/* ── COMMON: Image Upload (not for human injury/death) ── */}
+        {type !== 'human_injury' && type !== 'human_death' && (
+          <SectionCard title="📸 Photo Evidence / Picha ya Ushahidi">
+            <ImagePicker image={image} onImageSelected={(uri) => setImage(uri || null)} />
+          </SectionCard>
+        )}
 
         {/* ── COMMON: Voice Note ── */}
         <SectionCard title="🎙️ Voice Report / Ripoti kwa Sauti">
           <VoiceRecorder />
+        </SectionCard>
+
+        {/* ── COMMON: Elephant Count (all types) ── */}
+        <SectionCard title="🐘 How many Elephants involved? / Tembo wangapi wamehusika?">
+          <View style={{ gap: 8 }}>
+            {SIGHTING_COUNTS.map((item) => (
+              <CheckOption
+                key={item.id}
+                label={`${item.emoji}  ${item.label}`}
+                selected={elephantCount === item.id}
+                onPress={() => setElephantCount(item.id)}
+                color={config.color}
+              />
+            ))}
+          </View>
         </SectionCard>
 
         {/* ── COMMON: Notes ── */}
@@ -378,6 +1079,98 @@ export default function ReportScreen() {
             }}
           />
         </SectionCard>
+
+        {/* ── COMMON: Immediate Danger Selector ── */}
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: '#334155', marginBottom: 8 }}>
+            🚨 Report Priority / Kipaumbele cha Ripoti
+          </Text>
+          
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            {/* Normal Priority Option */}
+            <TouchableOpacity
+              onPress={() => setIsImmediateDanger(false)}
+              activeOpacity={0.8}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: !isImmediateDanger ? '#eafaf1' : '#f1f5f9',
+                borderRadius: 14,
+                paddingVertical: 14,
+                borderWidth: 2,
+                borderColor: !isImmediateDanger ? '#22c55e' : 'rgba(0,0,0,0.05)',
+                shadowColor: '#22c55e',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: !isImmediateDanger ? 0.08 : 0,
+                shadowRadius: 4,
+                elevation: !isImmediateDanger ? 2 : 0,
+              }}
+            >
+              <Text style={{ fontSize: 16, marginRight: 6 }}>🟢</Text>
+              <View>
+                <Text style={{ color: !isImmediateDanger ? '#15803d' : '#64748b', fontWeight: '700', fontSize: 13 }}>
+                  Normal / Kawaida
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Immediate Danger Option */}
+            <TouchableOpacity
+              onPress={() => setIsImmediateDanger(true)}
+              activeOpacity={0.8}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: isImmediateDanger ? '#fef2f2' : '#f1f5f9',
+                borderRadius: 14,
+                paddingVertical: 14,
+                borderWidth: 2,
+                borderColor: isImmediateDanger ? '#ef4444' : 'rgba(0,0,0,0.05)',
+                shadowColor: '#ef4444',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isImmediateDanger ? 0.12 : 0,
+                shadowRadius: 4,
+                elevation: isImmediateDanger ? 2 : 0,
+              }}
+            >
+              <Text style={{ fontSize: 16, marginRight: 6 }}>🚨</Text>
+              <View>
+                <Text style={{ color: isImmediateDanger ? '#b91c1c' : '#64748b', fontWeight: '700', fontSize: 13 }}>
+                  Danger / Dharura
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Context Explanatory Banner */}
+          <View
+            style={{
+              marginTop: 10,
+              padding: 12,
+              borderRadius: 12,
+              backgroundColor: isImmediateDanger ? '#fef2f2' : '#f0fdf4',
+              borderWidth: 1,
+              borderColor: isImmediateDanger ? '#fee2e2' : '#dcfce7',
+            }}
+          >
+            <Text style={{ color: isImmediateDanger ? '#b91c1c' : '#15803d', fontSize: 12, lineHeight: 18, fontWeight: '500' }}>
+              {isImmediateDanger 
+                ? '⚠️ CRITICAL EMERGENCY: This will immediately trigger SMS warnings to rangers and emergency dispatchers for rapid response.'
+                : '✅ Standard Report: For monitoring and mapping. Rangers will review this report as part of standard operations.'
+              }
+            </Text>
+            <Text style={{ color: isImmediateDanger ? '#ef4444' : '#16a34a', fontSize: 10, marginTop: 4, fontStyle: 'italic' }}>
+              {isImmediateDanger
+                ? 'DHARURA KUBWA: Ujumbe wa dharura utatumwa kwa askari sasa hivi kwa ajili ya usaidizi wa haraka.'
+                : 'RIPOTI YA KAWAIDA: Inatumika kwa ufuatiliaji wa kawaida. Askari wataiona wakati wa doria.'
+              }
+            </Text>
+          </View>
+        </View>
 
         {/* ── SUBMIT ── */}
         <TouchableOpacity

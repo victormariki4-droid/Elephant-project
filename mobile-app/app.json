@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "UHEC Alert Center",
+    "name": "HEC Alert Center",
     "slug": "hec-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,10 +17,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.hec.tracker",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "UHEC Alert Center needs your location to tag alert reports with GPS coordinates.",
-        "NSMicrophoneUsageDescription": "UHEC Alert Center needs microphone access for voice-based incident reports.",
-        "NSCameraUsageDescription": "UHEC Alert Center needs camera access for photo evidence in reports.",
-        "NSPhotoLibraryUsageDescription": "UHEC Alert Center needs photo library access for uploading evidence images."
+        "NSLocationWhenInUseUsageDescription": "HEC Alert Center needs your location to tag alert reports with GPS coordinates.",
+        "NSMicrophoneUsageDescription": "HEC Alert Center needs microphone access for voice-based incident reports.",
+        "NSCameraUsageDescription": "HEC Alert Center needs camera access for photo evidence in reports.",
+        "NSPhotoLibraryUsageDescription": "HEC Alert Center needs photo library access for uploading evidence images."
       }
     },
     "android": {
@@ -54,14 +54,14 @@
       [
         "expo-av",
         {
-          "microphonePermission": "Allow UHEC Alert Center to access your microphone for voice reports."
+          "microphonePermission": "Allow HEC Alert Center to access your microphone for voice reports."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow UHEC Alert Center to access your photos for evidence upload.",
-          "cameraPermission": "Allow UHEC Alert Center to use camera for photo evidence."
+          "photosPermission": "Allow HEC Alert Center to access your photos for evidence upload.",
+          "cameraPermission": "Allow HEC Alert Center to use camera for photo evidence."
         }
       ],
       "expo-asset",
